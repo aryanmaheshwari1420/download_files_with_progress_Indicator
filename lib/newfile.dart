@@ -15,6 +15,14 @@ class DOWNLOAD extends StatefulWidget {
 }
 
 class _DOWNLOADState extends State<DOWNLOAD> {
+   String ?progress;
+  bool _isLoading = false;
+   Dio ?dio;
+  @override
+  void initState() {
+    dio = Dio();
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,7 +40,8 @@ class _DOWNLOADState extends State<DOWNLOAD> {
                       onPressed: () => openFile(
                           url:
                               "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_20mb.mp4",
-                          fileName: 'dummy.mp4')),
+                          fileName: 'dummy.mp4'),
+                          ),
                 ),
               ),
             ],
@@ -48,11 +57,23 @@ class _DOWNLOADState extends State<DOWNLOAD> {
     print('Path:${file.path}');
 
     OpenFile.open(file.path);
+     
+   
+    
   }
 
   Future<File?> downloadFile(String url, String name) async {
     final appstorage = await getApplicationDocumentsDirectory();
     final file = File('${appstorage.path}/$name');
+         await dio?.download(url, file.path, onReceiveProgress: (rec, total) {
+        setState(() {
+          _isLoading = true;
+          progress = ((rec / total) * 100).toStringAsFixed(0) + "%";
+          print(progress);
+          
+
+        });
+      });
     try {
       final response = await Dio().get(url,
           options: Options(
